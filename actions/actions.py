@@ -138,8 +138,12 @@ class ActionFetchProductDetails(Action): # [NEW]
         return "action_fetch_product_details"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
+        # Retrieve MongoDB connection string from SECRET_KEY file
+        with open(os.path.join('..','SECRET_KEY')) as f:
+            MONGODB_CONNECTION_STRING = f.read().strip()
+
         # Connect to MongoDB Atlas
-        client = MongoClient("mongodb+srv://skincare14:skincarerecommender@clusterskincare.6sapl.mongodb.net/")
+        client = MongoClient(MONGODB_CONNECTION_STRING)
         db = client.get_database('recommendation_system_database')
         collection = db['products']  # Replace with your collection name
 

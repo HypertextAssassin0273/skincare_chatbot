@@ -1,3 +1,4 @@
+SECRET_KEY
 __pycache__
 cache
 models
