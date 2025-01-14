@@ -1,0 +1,52 @@
+version: "3.1"
+
+stories: # connects intents (relationship map), brings context to responses in {rasa shell} [similar to taylorered responses in chatgpt] -> path, simple if-if ladder??
+
+# - story: happy path
+#   steps:
+#     - intent: greet
+#     - action: utter_ask_phone
+#     - intent: phone
+#       entities:
+#       - number: 45906543198
+#     - slot_was_set:
+#       - phone: 80021560987
+
+#     - action: action_say_phone
+
+- story: happy path
+  steps:
+    - intent: greet
+    - action: utter_ask_skin_concern
+    - intent: skin_concern
+      entities :
+      - skin_problem : acne
+    - slot_was_set :
+      - skin_concern: acne
+    - action: action_say_skin_concern
+
+# - story: happy path
+#   steps:
+#     - intent: greet
+#     - action: utter_greet
+#     - action: utter_ask_skin_concern
+#     - intent: skin_concern
+#       entities :
+#       - skin_problem : acne
+#     - action: action_save_skin_problem
+#     - action: utter_show_skin_problem
+
+# - story: sad path 2
+#   steps:
+#     - intent: greet
+#     - action: utter_greet
+#     - intent: mood_unhappy
+#     - action: utter_cheer_up
+#     - action: utter_did_that_help
+#     - intent: deny
+#     - action: utter_goodbye
+
+# - story: explain ingredient benefits
+#   steps:
+#     - intent: ingredient_info
+#     - action: action_fetch_ingredient_info

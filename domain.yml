@@ -1,0 +1,108 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - mood_great
+  - mood_unhappy
+  - bot_challenge
+  - skin_concern
+  - product_recommendation
+  - ingredient_info
+  - phone
+  - repeat_phone
+  - fallback
+
+
+entities:
+  - skin_problem
+  - skin_type
+  - ingredient
+  - benefits
+  - products
+  - number
+
+
+slots:
+  phone:
+    type: text
+    influence_conversation : true
+    mappings:
+      - type: from_entity
+        entity: number
+
+  skin_concern:
+    type: text
+    influence_conversation : true
+    mappings:
+      - type: from_entity
+        entity: skin_problem
+
+  skin_type:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: skin_type
+
+  ingredient:
+    type: text
+    mappings:
+      - type: from_text
+
+  # products:
+  #   type: list
+  #   mappings:
+  #     - type: from_intent
+  #       intent: inform
+  #       value: "products_list"
+
+
+responses:
+  utter_greet:
+    - text: "Hey! How can I assist you today?"
+
+  utter_cheer_up:
+    - text: "Here is something to cheer you up:"
+      image: "https://i.imgur.com/nGF1K8f.jpg"
+
+  utter_did_that_help:
+    - text: "Did that help you?"
+
+  utter_ask_phone:
+  - text: "Can i get your phone number please?"
+
+  utter_happy:
+    - text: "Great! Let me know if you need anything else."
+
+  utter_goodbye:
+    - text: "Goodbye! Have a wonderful day."
+
+  utter_iamabot:
+    - text: "I am a bot, here to help you with your skincare concerns."
+
+  utter_ask_skin_concern:
+    - text: "What is your skin concern? "
+
+  utter_fallback:
+  - text: "I'm having trouble understanding. Can you rephrase or tell me more about your concern?"
+
+  utter_product_recommendation:
+    - text: "Here are some products for {skin_type} skin and {skin_concern}: {products}. Would you like to know more about any of these?"
+
+  utter_ingredient_info:
+    - text: "The ingredient {ingredient} is great for {benefits}. It works well for {skin_types} skin types."
+
+
+actions:
+  - action_recommend_products
+  - action_fetch_ingredient_info
+  - action_say_phone
+  - action_say_skin_concern
+  - action_fallback_to_chatgpt
+
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
