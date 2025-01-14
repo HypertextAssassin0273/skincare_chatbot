@@ -6,50 +6,45 @@
 
 
 # This is a simple example for a custom action which utters "Hello World!"
-
-# from typing import Any, Text, Dict, List
-#
-# from rasa_sdk import Action, Tracker
-# from rasa_sdk.executor import CollectingDispatcher
-#
 #
 # class ActionHelloWorld(Action):
-
-#     def name(self) -> Text:
+#     def name(self) -> Text: # [INFO]: tied with domain.yml -> actions
 #         return "action_hello_world"
-
-#     def run(self, dispatcher: CollectingDispatcher,
-#             tracker: Tracker,
-#             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]: # [param -> return_type for func 'run']
-
-#         dispatcher.utter_message(text="Hello World!") # [dispatcher relationship with domain ??]
-
-#         return [] # [can return events as lists]
+#
+#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]: # [INFO]: Dict[Text, Any] -> dict
+#         dispatcher.utter_message(text="Hello World!")
+#         return [] # [INFO]: can return events as lists
 
 
-from openai import OpenAI
 import os
-from typing import Any, Text, Dict, List
+
+from typing import Any, Text, Dict, List # [INFO]: for type hinting (optional)
+
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
+
 from pymongo import MongoClient
-# from dotenv import load_dotenv
+
+import openai
+from openai import OpenAI
+
+# from dotenv import load_dotenv # [INFO]: not needed as we are using .keys folder (temporarily)
 
 
 class ActionRecommendProducts(Action):
-    def name(self) -> Text: # tied with domain.yml -> actions
+    def name(self) -> Text:
         return "action_recommend_products"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         skin_type = tracker.get_slot("skin_type")
         skin_concern = tracker.get_slot("skin_concern")
 
-        recommendations = self.get_product_recommendations(skin_type, skin_concern) # [local function binded to class]
+        recommendations = self.get_product_recommendations(skin_type, skin_concern) # [INFO]: local function binded to class
 
         dispatcher.utter_message(text=f"Here are some recommended products for {skin_concern}: {recommendations}")
         return []
 
-    def get_product_recommendations(self, skin_type, skin_concern): # [reqs. to be in sync with recommendation system]
+    def get_product_recommendations(self, skin_type, skin_concern): # [NOTE]: reqs. to be in sync with recommendation system
         # Replace with actual logic to fetch recommendations
         return "1. Cleanser A, 2. Moisturizer B, 3. Sunscreen C"
 
@@ -73,10 +68,10 @@ class ActionFetchIngredientInfo(Action):
 
 
 class ActionSayPhone(Action):
-    def name(self) -> Text: # tied with domain.yml -> actions
+    def name(self) -> Text:
         return "action_say_phone"
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]): # Dict[Text, Any] or dict, -> List[Dict[Text, Any]]
+    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]):
         phone = tracker.get_slot("phone")
 
         if not phone :
@@ -102,29 +97,44 @@ class ActionSaySkinConcern(Action):
         return []
 
 
-class ActionFallbackToChatGPT(Action):
+class ActionFallbackToChatGPT(Action): # [ISSUE]: too many requests to OpenAI API, rate limit exceeded -> WHY?
     def name(self):
         return "action_fallback_to_chatgpt"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
         user_message = tracker.latest_message.get("text")
         try:
+            with open(os.path.join('.keys', 'OPENAI_KEY')) as f: # [INFO]: CWD is main project folder
+                OPENAI_API_KEY = f.read().strip()
+
             client = OpenAI(
-                 api_key=os.environ.get("OPENAI_API_KEY"),  # this is also the default, it can be omitted
+                 api_key=OPENAI_API_KEY,  # default method: os.environ.get("OPENAI_API_KEY")
             )
             response =  client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
+                model="gpt-4o-mini", # others: "gpt-3.5-turbo", "gpt-4o-mini", "gpt-4o"
+                messages=[ # [NOTE]: multiple messages or there structure might be the issue
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": user_message}
                 ]
             )
-            chatgpt_response = response['choices'][0]['message']['content'].strip()
+            chatgpt_response = response['choices'][0]['message']['content'].strip() # [NOTE]: check for exception safety
             dispatcher.utter_message(chatgpt_response)
-
-        except client.error.OpenAIError as e:
+        
+        except openai.OpenAIError as e:
             dispatcher.utter_message("I'm sorry, I couldn't process your request.")
             print(f"OpenAI API error: {e}")
+
+        except openai.APIConnectionError as e:
+            dispatcher.utter_message("I'm sorry, I couldn't connect to the OpenAI API.")
+            print(f"API connection error: {e}")
+
+        except openai.InvalidRequestError as e:
+            dispatcher.utter_message("I'm sorry, there was an issue with the request to the OpenAI API.")
+            print(f"Invalid request error: {e}")
+
+        except openai.RateLimitError as e:
+            dispatcher.utter_message("I'm sorry, the OpenAI API rate limit has been exceeded.")
+            print(f"Rate limit error: {e}")
 
         except Exception as e:
             dispatcher.utter_message("An unexpected error occurred.")
@@ -133,13 +143,13 @@ class ActionFallbackToChatGPT(Action):
         return []
 
 
-class ActionFetchProductDetails(Action): # [NEW]
+class ActionFetchProductDetails(Action): # [ISSUE]: not connected to MongoDB, improve query (should retrieve info from product description/details if msg isn't clear)
     def name(self) -> str:
         return "action_fetch_product_details"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
         # Retrieve MongoDB connection string from SECRET_KEY file
-        with open(os.path.join('..','SECRET_KEY')) as f:
+        with open(os.path.join('.keys', 'MONGODB_KEY')) as f:
             MONGODB_CONNECTION_STRING = f.read().strip()
 
         # Connect to MongoDB Atlas
