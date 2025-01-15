@@ -41,55 +41,111 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 MONGODB_CONNECTION_STRING = os.getenv("MONGODB_CONNECTION_STRING")
 
 
+# class ActionRecommendProducts(Action): # [INFO]: old method (for testing)
+#     def name(self) -> Text:
+#         return "action_recommend_products"
+
+#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#         skin_type = tracker.get_slot("skin_type")
+#         skin_concern = tracker.get_slot("skin_concern")
+
+#         recommendations = self.get_product_recommendations(skin_type, skin_concern) # [INFO]: local function binded to class
+
+#         dispatcher.utter_message(text=f"Here are some recommended products for {skin_concern}: {recommendations}")
+#         return []
+
+#     def get_product_recommendations(self, skin_type, skin_concern): # [NOTE]: reqs. to be in sync with recommendation system
+#         # Replace with actual logic to fetch recommendations
+#         return "1. Cleanser A, 2. Moisturizer B, 3. Sunscreen C"
+
+
 class ActionRecommendProducts(Action):
-    def name(self) -> Text:
+    def name(self) -> str:
         return "action_recommend_products"
+    
+    def run(self, dispatcher, tracker, domain):
+        # Connect to MongoDB
+        client = MongoClient(MONGODB_CONNECTION_STRING)
+        db = client.get_database('recommendation_system_database')
+        collection = db['products']  # Define the collection here
+        
+        # Get the skin concern from the slot
+        skin_concern = tracker.get_slot('skin_concern')  
+        if not skin_concern:
+            dispatcher.utter_message(text="Please specify your skin concern so I can recommend the best products.")
+            return []
+        
+        # Query MongoDB for matching products
+        matching_products = self.get_matching_products(collection, skin_concern)
+        
+        if matching_products:
+            # Sort products by price
+            matching_products.sort(key=lambda x: x['price_in_pkr'])
+            
+            # Create a response message
+            recommendations = ""
+            for index, product in enumerate(matching_products, start=1):
+                recommendations += (
+                    f"{index}. Product: {product['Name']}\n"
+                    f"   Price: {product['price_in_pkr']} PKR\n"
+                    f"   Benefits: {product['Benefits']}\n\n"
+                )
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        skin_type = tracker.get_slot("skin_type")
-        skin_concern = tracker.get_slot("skin_concern")
-
-        recommendations = self.get_product_recommendations(skin_type, skin_concern) # [INFO]: local function binded to class
-
-        dispatcher.utter_message(text=f"Here are some recommended products for {skin_concern}: {recommendations}")
+            dispatcher.utter_message(
+                text=f"Here are some best products that can help with your skin problem :\n\n{recommendations}"
+            )
+        else:
+            dispatcher.utter_message(
+                text="Sorry, I couldn't find any products matching your skin concern."
+            )
+        
         return []
-
-    def get_product_recommendations(self, skin_type, skin_concern): # [NOTE]: reqs. to be in sync with recommendation system
-        # Replace with actual logic to fetch recommendations
-        return "1. Cleanser A, 2. Moisturizer B, 3. Sunscreen C"
-
-
-class ActionFetchIngredientInfo(Action):
-    def name(self) -> Text:
-        return "action_fetch_ingredient_info"
-
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        ingredient = tracker.get_slot("ingredient")
-        benefits, skin_types = self.get_ingredient_info(ingredient)
-
-        dispatcher.utter_message(
-            text=f"The ingredient {ingredient} is known for {benefits}. It is suitable for {skin_types} skin types."
-        )
-        return []
-
-    def get_ingredient_info(self, ingredient):
-        # Replace with actual logic to fetch ingredient details
-        return "hydrating properties", "dry, normal, and combination"
+    
+    def get_matching_products(self, collection, skin_concern):
+        """
+        Query the MongoDB collection for products matching the skin concern.
+        """
+        query = {
+            "$or": [
+                {"Benefits": {"$regex": skin_concern, "$options": "i"}},
+                {"Skin Type": {"$regex": skin_concern, "$options": "i"}}
+            ]
+        }
+        products = collection.find(query)
+        return list(products)
 
 
-class ActionSayPhone(Action):
-    def name(self) -> Text:
-        return "action_say_phone"
+# class ActionFetchIngredientInfo(Action):
+#     def name(self) -> Text:
+#         return "action_fetch_ingredient_info"
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]):
-        phone = tracker.get_slot("phone")
+#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+#         ingredient = tracker.get_slot("ingredient")
+#         benefits, skin_types = self.get_ingredient_info(ingredient)
 
-        if not phone :
-            dispatcher.utter_message(text="Sorry i dont know your phone number ")
-        else :
-            dispatcher.utter_message(text=f"Your phone number is {phone} :) ")
+#         dispatcher.utter_message(
+#             text=f"The ingredient {ingredient} is known for {benefits}. It is suitable for {skin_types} skin types."
+#         )
+#         return []
 
-        return []
+#     def get_ingredient_info(self, ingredient):
+#         # Replace with actual logic to fetch ingredient details
+#         return "hydrating properties", "dry, normal, and combination"
+
+
+# class ActionSayPhone(Action): # [INFO]: not needed, just for testing
+#     def name(self) -> Text:
+#         return "action_say_phone"
+
+#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: Dict[Text, Any]):
+#         phone = tracker.get_slot("phone")
+
+#         if not phone :
+#             dispatcher.utter_message(text="Sorry i dont know your phone number ")
+#         else :
+#             dispatcher.utter_message(text=f"Your phone number is {phone} :) ")
+
+#         return []
 
 
 class ActionSaySkinConcern(Action):
@@ -185,34 +241,34 @@ class ActionFallbackToGemini(Action):
             print(f"[Gemini] Error: {e}")
 
 
-class ActionFetchProductDetails(Action): # [ISSUE]: not connected to MongoDB, improve query (should retrieve info from product description/details if msg isn't clear)
-    def name(self) -> str:
-        return "action_fetch_product_details"
+# class ActionFetchProductDetails(Action): # [ISSUE]: improve query (should retrieve info from product description/details if msg isn't clear), old method
+#     def name(self) -> str:
+#         return "action_fetch_product_details"
 
-    def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
-        # Connect to MongoDB Atlas
-        client = MongoClient(MONGODB_CONNECTION_STRING)
-        db = client.get_database('recommendation_system_database')
-        collection = db['products']  # Replace with your collection name
+#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
+#         # Connect to MongoDB Atlas
+#         client = MongoClient(MONGODB_CONNECTION_STRING)
+#         db = client.get_database('recommendation_system_database')
+#         collection = db['products']  # Replace with your collection name
 
-        # Get the user query (you can extract this from the tracker)
-        product_name = tracker.get_slot('product_name')  # Assuming you captured the product name in a slot
+#         # Get the user query (you can extract this from the tracker)
+#         product_name = tracker.get_slot('product_name')  # Assuming you captured the product name in a slot
 
-        # Query the MongoDB database
-        product = collection.find_one({"ProductName": product_name})
+#         # Query the MongoDB database
+#         product = collection.find_one({"ProductName": product_name})
 
-        if product:
-            # Respond with product details
-            message = f"Product: {product['ProductName']}\n"
-            message += f"Category: {product['Category']}\n"
-            message += f"Skin Type: {product['SkinType']}\n"
-            message += f"Benefits: {product['Benefits']}\n"
-            message += f"Active Ingredients: {product['ActiveIngredients']}\n"
-            message += f"Sentiment: {product['Sentiment']}\n"
-        else:
-            message = "Sorry, I couldn't find any details about that product."
+#         if product:
+#             # Respond with product details
+#             message = f"Product: {product['ProductName']}\n"
+#             message += f"Category: {product['Category']}\n"
+#             message += f"Skin Type: {product['SkinType']}\n"
+#             message += f"Benefits: {product['Benefits']}\n"
+#             message += f"Active Ingredients: {product['ActiveIngredients']}\n"
+#             message += f"Sentiment: {product['Sentiment']}\n"
+#         else:
+#             message = "Sorry, I couldn't find any details about that product."
 
-        # Send the response back to the user
-        dispatcher.utter_message(text=message)
+#         # Send the response back to the user
+#         dispatcher.utter_message(text=message)
 
-        return []
+#         return []

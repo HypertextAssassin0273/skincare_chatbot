@@ -1,8 +1,8 @@
 version: "3.1"
 
-rules: # maps & run rule (aka job/task) on 'intent' to perform 'action' [overall similar to ansible playbooks .yml]
+rules: # [INFO]: maps & run rule (aka job/task) on 'intent' to perform 'action'
 
-- rule: Say goodbye anytime the user says goodbye #desc [simiar to actions@github: task]
+- rule: Say goodbye anytime the user says goodbye # [INFO]: overall similar to 'task' in ansible-playbooks.yml & yaml-actions@github  
   steps:
   - intent: goodbye
   - action: utter_goodbye
@@ -12,15 +12,20 @@ rules: # maps & run rule (aka job/task) on 'intent' to perform 'action' [overall
   - intent: bot_challenge
   - action: utter_iamabot
 
-- rule: Handle product recommendation
-  steps:
-    - intent: product_recommendation
-    - action: action_recommend_products
+# - rule: Handle product recommendation
+#   steps:
+#     - intent: product_recommendation
+#     - action: action_recommend_products
 
-- rule: Handle ingredient info
-  steps:
-    - intent: ingredient_info
-    - action: action_fetch_ingredient_info
+# - rule: Handle user affirmation for product recommendations
+#   steps:
+#     - intent: affirm
+#     - action: action_recommend_products
+
+# - rule: Handle ingredient info
+#   steps:
+#     - intent: ingredient_info
+#     - action: action_fetch_ingredient_info
 
 # - rule: Fallback to ChatGPT
 #   steps:

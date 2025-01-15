@@ -1,6 +1,6 @@
 version: "3.1"
 
-nlu: # maps examples on intent keyword
+nlu: # [INFO]: maps examples on intent keyword
 
 - intent: greet
   examples: |
@@ -35,10 +35,18 @@ nlu: # maps examples on intent keyword
   examples: |
     - yes
     - y
+    - yeah
     - indeed
     - of course
     - that sounds good
-    - correct
+    - sure
+    - absolutely
+    - I'd love to
+    - of course
+    - definitely
+    - okay
+    - ok
+    - yes please
 
 - intent: deny
   examples: |
@@ -98,43 +106,117 @@ nlu: # maps examples on intent keyword
     - here you do [69897896543](number)
     - my phone number is [98754309872](number)
 
-- intent: repeat_phone
-  examples: |
-    - what is my phone number
-    - tell me my phone number
+# - intent: repeat_phone
+#   examples: |
+#     - what is my phone number
+#     - tell me my phone number
 
 - intent: skin_concern
   examples: |
-    - Meri skin [oily](skin_problem) hai
     - I have [dry](skin_problem) skin
-    - Mujhe [blackhead](skin_problem) ska masla hai
-    - [hyperpigmentation](skin_problem)
-    - Mera face par [acne](skin_problem) hai
+    - I have [oily](skin_problem) skin
+    - I have [combination](skin_problem) skin
     - My skin feels [sensitive](skin_problem)
-    - Can you help with [acne](skin_problem)?
-    - What’s the solution for [pimples](skin_problem)?
-    - I’m facing [dull](skin_problem) skin
-    - What should I do for [redness](skin_problem)?
+    - My skin looks [dull](skin_problem)
+    - My face has [redness](skin_problem)
+    - I am experiencing [flaky](skin_problem) skin
+    - What should I do for [blackheads](skin_problem)?
+    - I need help with [acne](skin_problem)
+    - Can you suggest something for [blemishes](skin_problem)?
+    - How can I get rid of [whiteheads](skin_problem)?
+    - My skin has [hyperpigmentation](skin_problem)
+    - I’m struggling with [dark spots](skin_problem)
+    - I’m noticing [uneven texture](skin_problem) on my face
+    - My skin is very [itchy](skin_problem)
+    - I feel my skin is [irritated](skin_problem)
+    - I want to reduce [fine lines](skin_problem)
+    - My skin has developed [wrinkles](skin_problem)
+    - I need advice for [pimples](skin_problem)
+    - My skin gets [greasy](skin_problem) easily
+    - I am dealing with [open pores](skin_problem)
+    - How do I fix [sunburn](skin_problem)?
+    - I have [eczema](skin_problem) on my skin
+    - My face has [rashes](skin_problem)
+    - I want a solution for [rosacea](skin_problem)
+    - I’m facing [melasma](skin_problem)
+    - I have [clogged pores](skin_problem)
+    - My skin has [patchy discoloration](skin_problem)
+    - I feel my skin is [rough](skin_problem)
+    - How do I reduce [acne scars](skin_problem)?
+    - My face has a lot of [freckles](skin_problem)
+    - My skin is very [tight](skin_problem) and dry
+    - How can I deal with [scaly](skin_problem) skin?
+    - I’ve noticed [red patches](skin_problem) on my face
+    - My skin is [peeling](skin_problem) a lot
+    - I want advice for [chapped](skin_problem) skin
+    - How can I soothe [burning](skin_problem) sensations on my skin?
+    - My skin is [dehydrated](skin_problem)
+    - I am struggling with [age spots](skin_problem)
+    - My face looks [lifeless](skin_problem)
+    - What do I do for [eczema flares](skin_problem)?
+    - My skin feels [uneven](skin_problem) in tone
+    - I have [hormonal acne](skin_problem)
+    - I’m dealing with [post-inflammatory hyperpigmentation](skin_problem)
+    - My skin has [scars](skin_problem) that won’t fade
+    - I want to lighten [dark circles](skin_problem) under my eyes
+    - I need a remedy for [sun damage](skin_problem)
+    - My skin has [keratosis pilaris](skin_problem)
+    - I have [cracked](skin_problem) skin on my hands
+    - My skin feels [bumpy](skin_problem) all over
+    - How do I stop [excess sebum](skin_problem) production?
+    - My skin reacts to [harsh products](skin_problem)
+    - I have [visible veins](skin_problem) on my face
+    - How can I treat [sagging](skin_problem) skin?
+    - I want help with [skin tags](skin_problem)
+    - I have [allergic reactions](skin_problem) on my skin
+    - My face flushes easily and feels [hot](skin_problem)
+    - What do I do for [cheek redness](skin_problem)?
+    - My skin feels [stretched](skin_problem) and dry
+    - How do I deal with [psoriasis](skin_problem)?
+    - I have [dark knuckles](skin_problem) on my hands
+    - My skin has developed [fine bumps](skin_problem) on my forehead
+    - How do I treat [cold sores](skin_problem)?
+    - I have [seborrheic dermatitis](skin_problem)
+    - My skin feels [thickened](skin_problem) and rough
+    - How can I treat [fungal acne](skin_problem)?
+    - My skin is very [dull](skin_problem) and uneven
+    - I need a solution for [scalp redness](skin_problem)
+    - I have [stretch marks](skin_problem) on my body
+    - How do I treat [ingrown hairs](skin_problem)?
+    - My skin is [inflamed](skin_problem) and painful
+    - What can I do for [broken capillaries](skin_problem)?
+    - I have a lot of [patchy pigmentation](skin_problem) on my cheeks
+    - How do I remove [age-related spots](skin_problem)?
+    - My skin feels [tight](skin_problem) and cracks easily
+    - I have [warts](skin_problem) on my skin
+    - My skin has a [leathery](skin_problem) appearance
+    - How do I treat [skin peeling](skin_problem)?
+    - I want to fade [old scars](skin_problem) on my face
+    - My skin feels [prickly](skin_problem) after sun exposure
+    - How can I deal with [sebaceous filaments](skin_problem)?
+    - I am noticing [pale patches](skin_problem) on my skin
+    - My skin feels [swollen](skin_problem) and tender
+    - I need help with [pre-mature aging](skin_problem) signs
 
-- intent: product_recommendation
-  examples: |
-    - Suggest a product for oily skin
-    - Recommend something for pigmentation
-    - Acne ke liye best cleanser?
-    - Can you recommend a facewash for sensitive skin?
-    - What product should I use for acne and blackheads?
-    - Tell me the best toner for dry skin
+# - intent: product_recommendation
+#   examples: |
+#     - Suggest a product for oily skin
+#     - Recommend something for pigmentation
+#     - Acne ke liye best cleanser?
+#     - Can you recommend a facewash for sensitive skin?
+#     - What product should I use for acne and blackheads?
+#     - Tell me the best toner for dry skin
 
-- intent: ingredient_info
-  examples: |
-    - What is salicylic acid used for?
-    - What are the benefits of niacinamide?
-    - Is hyaluronic acid good for dry skin?
-    - What does retinol do?
-    - Which skin type benefits from vitamin C?
+# - intent: ingredient_info
+#   examples: |
+#     - What is salicylic acid used for?
+#     - What are the benefits of niacinamide?
+#     - Is hyaluronic acid good for dry skin?
+#     - What does retinol do?
+#     - Which skin type benefits from vitamin C?
 
 
-- synonym: oily # same intent keywords
+- synonym: oily # [INFO]: same intent keywords, [NOTE]: doesn't work with spaces or non-alpabetical character in b/w words
   examples: |
     - chip-chip
     - oil wali

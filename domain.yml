@@ -9,12 +9,11 @@ intents:
   - mood_unhappy
   - bot_challenge
   - skin_concern
-  - product_recommendation
-  - ingredient_info
+  # - product_recommendation
+  # - ingredient_info
   - phone
-  - repeat_phone
+  # - repeat_phone
   - fallback
-
 
 entities:
   - skin_problem
@@ -88,6 +87,9 @@ responses:
   utter_fallback:
   - text: "I'm having trouble understanding. Can you rephrase or tell me more about your concern?"
 
+  utter_ask_affirmation:
+  - text: "Would you like to see product recommendations containing these ingredients?"
+
   utter_product_recommendation:
     - text: "Here are some products for {skin_type} skin and {skin_concern}: {products}. Would you like to know more about any of these?"
 
@@ -97,12 +99,11 @@ responses:
 
 actions:
   - action_recommend_products
-  - action_fetch_ingredient_info
-  - action_say_phone
+  # - action_fetch_ingredient_info
+  # - action_say_phone
   - action_say_skin_concern
   # - action_fallback_to_chatgpt
   - action_fallback_to_gemini
-
 
 session_config:
   session_expiration_time: 60
