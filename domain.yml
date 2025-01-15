@@ -100,7 +100,8 @@ actions:
   - action_fetch_ingredient_info
   - action_say_phone
   - action_say_skin_concern
-  - action_fallback_to_chatgpt
+  # - action_fallback_to_chatgpt
+  - action_fallback_to_gemini
 
 
 session_config:

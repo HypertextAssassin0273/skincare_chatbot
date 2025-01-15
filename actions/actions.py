@@ -25,8 +25,11 @@ from rasa_sdk.executor import CollectingDispatcher
 
 from pymongo import MongoClient
 
-import openai
-from openai import OpenAI
+# import openai
+# from openai import OpenAI
+
+import google.generativeai as genai
+from google.api_core import exceptions as google_exceptions
 
 # from dotenv import load_dotenv # [INFO]: not needed as we are using .keys folder (temporarily)
 
@@ -97,50 +100,90 @@ class ActionSaySkinConcern(Action):
         return []
 
 
-class ActionFallbackToChatGPT(Action): # [ISSUE]: too many requests to OpenAI API, rate limit exceeded -> WHY?
+# class ActionFallbackToChatGPT(Action): # [ISSUE]: too many requests to OpenAI API, rate limit exceeded -> WHY?
+#     def name(self):
+#         return "action_fallback_to_chatgpt"
+
+#     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
+#         user_message = tracker.latest_message.get("text")
+#         try:
+#             with open(os.path.join('.keys', 'OPENAI_KEY')) as f: # [INFO]: CWD is main project folder
+#                 OPENAI_API_KEY = f.read().strip()
+
+#             client = OpenAI(
+#                  api_key=OPENAI_API_KEY,  # default method: os.environ.get("OPENAI_API_KEY")
+#             )
+#             response =  client.chat.completions.create(
+#                 model="gpt-4o-mini", # others: "gpt-3.5-turbo", "gpt-4o-mini", "gpt-4o"
+#                 messages=[ # [NOTE]: multiple messages or there structure might be the issue
+#                     {"role": "system", "content": "You are a helpful assistant."},
+#                     {"role": "user", "content": user_message}
+#                 ]
+#             )
+#             chatgpt_response = response['choices'][0]['message']['content'].strip() # [NOTE]: check for exception safety
+#             dispatcher.utter_message(chatgpt_response)
+        
+#         except openai.OpenAIError as e:
+#             dispatcher.utter_message("I'm sorry, I couldn't process your request.")
+#             print(f"OpenAI API error: {e}")
+
+#         except openai.APIConnectionError as e:
+#             dispatcher.utter_message("I'm sorry, I couldn't connect to the OpenAI API.")
+#             print(f"API connection error: {e}")
+
+#         except openai.InvalidRequestError as e:
+#             dispatcher.utter_message("I'm sorry, there was an issue with the request to the OpenAI API.")
+#             print(f"Invalid request error: {e}")
+
+#         except openai.RateLimitError as e:
+#             dispatcher.utter_message("I'm sorry, the OpenAI API rate limit has been exceeded.")
+#             print(f"Rate limit error: {e}")
+
+#         except Exception as e:
+#             dispatcher.utter_message("An unexpected error occurred.")
+#             print(f"Error: {e}")
+
+#         return []
+
+
+class ActionFallbackToGemini(Action):
     def name(self):
-        return "action_fallback_to_chatgpt"
+        return "action_fallback_to_gemini"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
         user_message = tracker.latest_message.get("text")
         try:
-            with open(os.path.join('.keys', 'OPENAI_KEY')) as f: # [INFO]: CWD is main project folder
-                OPENAI_API_KEY = f.read().strip()
+            with open(os.path.join('.keys', 'GEMINI_KEY')) as f:
+                GEMINI_API_KEY = f.read().strip()
+            
+            genai.configure(api_key=GEMINI_API_KEY)
+            model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-            client = OpenAI(
-                 api_key=OPENAI_API_KEY,  # default method: os.environ.get("OPENAI_API_KEY")
-            )
-            response =  client.chat.completions.create(
-                model="gpt-4o-mini", # others: "gpt-3.5-turbo", "gpt-4o-mini", "gpt-4o"
-                messages=[ # [NOTE]: multiple messages or there structure might be the issue
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": user_message}
-                ]
-            )
-            chatgpt_response = response['choices'][0]['message']['content'].strip() # [NOTE]: check for exception safety
-            dispatcher.utter_message(chatgpt_response)
+            safety_settings = [
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+            ]
+            response = model.generate_content(user_message, safety_settings=safety_settings)
+            gemini_response = response.text.strip()
+            dispatcher.utter_message(gemini_response)
         
-        except openai.OpenAIError as e:
-            dispatcher.utter_message("I'm sorry, I couldn't process your request.")
-            print(f"OpenAI API error: {e}")
+        except google_exceptions.InvalidArgument as e:
+            print(f"[Gemini] Invalid argument error: {e}")
 
-        except openai.APIConnectionError as e:
-            dispatcher.utter_message("I'm sorry, I couldn't connect to the OpenAI API.")
-            print(f"API connection error: {e}")
+        except google_exceptions.PermissionDenied as e:
+            print(f"[Gemini] Permission denied: {e}")
 
-        except openai.InvalidRequestError as e:
-            dispatcher.utter_message("I'm sorry, there was an issue with the request to the OpenAI API.")
-            print(f"Invalid request error: {e}")
+        except google_exceptions.NotFound as e:
+            print(f"[Gemini] Resource not found: {e}")
 
-        except openai.RateLimitError as e:
-            dispatcher.utter_message("I'm sorry, the OpenAI API rate limit has been exceeded.")
-            print(f"Rate limit error: {e}")
+        except google_exceptions.GoogleAPICallError as e: # Fallback for other API call errors
+            print(f"[Gemini] An API call error occurred: {e}")
 
         except Exception as e:
             dispatcher.utter_message("An unexpected error occurred.")
-            print(f"Error: {e}")
-
-        return []
+            print(f"[Gemini] Error: {e}")
 
 
 class ActionFetchProductDetails(Action): # [ISSUE]: not connected to MongoDB, improve query (should retrieve info from product description/details if msg isn't clear)

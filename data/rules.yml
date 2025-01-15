@@ -22,7 +22,12 @@ rules: # maps & run rule (aka job/task) on 'intent' to perform 'action' [overall
     - intent: ingredient_info
     - action: action_fetch_ingredient_info
 
-- rule: Fallback to ChatGPT
+# - rule: Fallback to ChatGPT
+#   steps:
+#     - intent: nlu_fallback
+#     - action: action_fallback_to_chatgpt
+
+- rule: Fallback to Gemini
   steps:
     - intent: nlu_fallback
-    - action: action_fallback_to_chatgpt
+    - action: action_fallback_to_gemini

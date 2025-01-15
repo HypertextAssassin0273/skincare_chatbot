@@ -41,7 +41,8 @@ policies:
 # # See https://rasa.com/docs/rasa/policies for more information.
   - name: MemoizationPolicy
   - name: RulePolicy
-    core_fallback_action_name: "action_fallback_to_chatgpt"
+    # core_fallback_action_name: "action_fallback_to_chatgpt"
+    core_fallback_action_name: "action_fallback_to_gemini"
     core_fallback_threshold: 0.4
     enable_fallback_prediction: True
   - name: UnexpecTEDIntentPolicy
