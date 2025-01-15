@@ -31,7 +31,14 @@ from pymongo import MongoClient
 import google.generativeai as genai
 from google.api_core import exceptions as google_exceptions
 
-# from dotenv import load_dotenv # [INFO]: not needed as we are using .keys folder (temporarily)
+from dotenv import load_dotenv 
+
+
+load_dotenv() # [INFO]: load environment variables from .env file
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") # [INFO]: default method -> os.environ.get("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+MONGODB_CONNECTION_STRING = os.getenv("MONGODB_CONNECTION_STRING")
 
 
 class ActionRecommendProducts(Action):
@@ -107,12 +114,7 @@ class ActionSaySkinConcern(Action):
 #     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
 #         user_message = tracker.latest_message.get("text")
 #         try:
-#             with open(os.path.join('.keys', 'OPENAI_KEY')) as f: # [INFO]: CWD is main project folder
-#                 OPENAI_API_KEY = f.read().strip()
-
-#             client = OpenAI(
-#                  api_key=OPENAI_API_KEY,  # default method: os.environ.get("OPENAI_API_KEY")
-#             )
+#             client = OpenAI(api_key=OPENAI_API_KEY)
 #             response =  client.chat.completions.create(
 #                 model="gpt-4o-mini", # others: "gpt-3.5-turbo", "gpt-4o-mini", "gpt-4o"
 #                 messages=[ # [NOTE]: multiple messages or there structure might be the issue
@@ -153,13 +155,10 @@ class ActionFallbackToGemini(Action):
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
         user_message = tracker.latest_message.get("text")
         try:
-            with open(os.path.join('.keys', 'GEMINI_KEY')) as f:
-                GEMINI_API_KEY = f.read().strip()
-            
             genai.configure(api_key=GEMINI_API_KEY)
             model = genai.GenerativeModel(model_name="gemini-1.5-flash")
 
-            safety_settings = [
+            safety_settings = [ # [INFO]: safety settings for content moderation, optional
                 {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
                 {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
                 {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
@@ -191,10 +190,6 @@ class ActionFetchProductDetails(Action): # [ISSUE]: not connected to MongoDB, im
         return "action_fetch_product_details"
 
     def run(self, dispatcher: CollectingDispatcher, tracker: Tracker, domain: dict):
-        # Retrieve MongoDB connection string from SECRET_KEY file
-        with open(os.path.join('.keys', 'MONGODB_KEY')) as f:
-            MONGODB_CONNECTION_STRING = f.read().strip()
-
         # Connect to MongoDB Atlas
         client = MongoClient(MONGODB_CONNECTION_STRING)
         db = client.get_database('recommendation_system_database')
